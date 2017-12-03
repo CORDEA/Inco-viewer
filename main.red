@@ -72,7 +72,11 @@ histories-view: make face! [
                 on-create: function [face [object!]][
                     histories: inco/get-histories face
                     foreach history histories [
-                        print select history 'url
+                        decrypted: copy ""
+                        result: call/output rejoin ["./decrypt.sh " {"} select history 'url {"}] decrypted
+                        if result == 0 [
+                            append face/data decrypted
+                        ]
                     ]
                 ]
             ]

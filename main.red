@@ -31,7 +31,7 @@ inco: context [
     token: ""
 
     get-histories: function [
-        list [object!]
+        return: [block!]
     ] [
         url: rejoin [baseUrl historiesPath]
         request: [GET []]
@@ -41,7 +41,7 @@ inco: context [
         append request ""
         response: write/lines make url! url request
         decoded: json/decode make string! response
-        print decoded
+        return decoded
     ]
 
     login: function [
@@ -70,7 +70,10 @@ histories-view: make face! [
             data: []
             actors: object [
                 on-create: function [face [object!]][
-                    inco/get-histories face
+                    histories: inco/get-histories face
+                    foreach history histories [
+                        print select history 'url
+                    ]
                 ]
             ]
         ]

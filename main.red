@@ -23,6 +23,7 @@ Red [
 #include %red-tools/json.red
 
 baseUrl: "http://localhost:8080"
+historiesPath: "/histories"
 loginPath: "/login"
 
 inco: context [
@@ -30,9 +31,17 @@ inco: context [
     token: ""
 
     get-histories: function [
-        f event
+        list [object!]
     ] [
-        root: f/parent
+        url: rejoin [baseUrl historiesPath]
+        request: [GET []]
+        append last request compose [
+            Authorization: (rejoin ["Bearer " token])
+        ]
+        append request ""
+        response: write/lines make url! url request
+        decoded: json/decode make string! response
+        print decoded
     ]
 
     login: function [

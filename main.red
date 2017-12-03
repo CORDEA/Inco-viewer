@@ -78,5 +78,9 @@ view [
     ] return
     button: button "Submit" [
         token: inco/login button
+        if token [
+            inco/token: token
+            view histories-view
+        ]
     ]
 ]

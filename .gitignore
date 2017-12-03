@@ -4,3 +4,5 @@ red-tools/
 libRedRT-defs.r
 libRedRT-include.red
 libRedRT.dylib
+
+private.pem

@@ -36,14 +36,14 @@ inco: context [
     ]
 
     login: function [
-        f event
+        f [object!]
+        return: [string!]
     ] [
         root: f/parent
         info: collect [foreach-face/with root [keep face/text] [face/type == 'field]]
         url: make string! reduce [baseUrl loginPath "?user=" first info "&pass=" next info]
         decoded: json/decode make string! write/lines make url! url []
-        token: select decoded 'token
-        if token [view histories-view]
+        return select decoded 'token
     ]
 
     init: function [
@@ -53,13 +53,22 @@ inco: context [
     ]
 ]
 
-histories-view: layout [
-    title "Inco"
+histories-view: make face! [
+    type: 'window text: "Inco" size: 800x500
+    pane: reduce [
+        make face! [
+            type: 'text-list size: 800x500
+            data: []
+            actors: object [
+                on-create: function [face [object!]][
+                    inco/get-histories face
+                ]
+            ]
+        ]
+    ]
 ]
 
 inco/init
-
-login: :inco/login
 
 view [
     style txt: text right 45
@@ -67,5 +76,7 @@ view [
         txt "Username" field return
         txt "Password" field
     ] return
-    button "Submit" :login
+    button: button "Submit" [
+        token: inco/login button
+    ]
 ]

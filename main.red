@@ -41,7 +41,7 @@ inco: context [
     ] [
         root: f/parent
         info: collect [foreach-face/with root [keep face/text] [face/type == 'field]]
-        url: make string! reduce [baseUrl loginPath "?user=" first info "&pass=" next info]
+        url: rejoin [baseUrl loginPath "?user=" first info "&pass=" next info]
         decoded: json/decode make string! write/lines make url! url []
         return select decoded 'token
     ]

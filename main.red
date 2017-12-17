@@ -24,11 +24,16 @@ Red [
 
 baseUrl: "http://localhost:8080"
 historiesPath: "/histories"
+deleteHistoriesPath: "/delete-histories"
 loginPath: "/login"
 
 inco: context [
 
     token: ""
+
+    histories: []
+
+    selected-histories: []
 
     get-histories: function [
         return: [block!]
@@ -42,6 +47,32 @@ inco: context [
         response: write/lines make url! url request
         decoded: json/decode make string! response
         return decoded
+    ]
+
+    joinWith: function [
+        strings [block!]
+        delimiter [string!]
+        return: [string!]
+    ] [
+        collect/into [
+            foreach str strings [
+                keep rejoin [str delimiter]
+            ]
+        ] output: copy ""
+        remove back tail output
+        return output
+    ]
+
+    delete-histories: function [
+        ids [block!]
+    ] [
+        url: rejoin [baseUrl deleteHistoriesPath]
+        request: [POST []]
+        append last request compose [
+            Authorization: (rejoin ["Bearer " token])
+        ]
+        append request rejoin ["id=" joinWith ids ","]
+        print make string! write/lines make url! url request
     ]
 
     login: function [
@@ -65,7 +96,7 @@ inco: context [
 selected-list: make face! [
     type: 'text-list
     offset: 400x0
-    size: 400x500
+    size: 400x450
     data: []
     actors: object [
         on-change: function [
@@ -74,6 +105,7 @@ selected-list: make face! [
         ][
             index: face/selected
             unless index == 0 [
+                append/only inco/histories take at inco/selected-histories index
                 append base-list/data take at face/data index
             ]
         ]
@@ -82,7 +114,7 @@ selected-list: make face! [
 
 base-list: make face! [
     type: 'text-list
-    size: 400x500
+    size: 400x450
     data: []
     actors: object [
         on-create: function [face [object!]][
@@ -91,6 +123,7 @@ base-list: make face! [
                 decrypted: copy ""
                 result: call/output rejoin ["./decrypt.sh " {"} select history 'url {"}] decrypted
                 if result == 0 [
+                    append/only inco/histories reduce [decrypted select history 'id]
                     append face/data decrypted
                 ]
             ]
@@ -101,6 +134,7 @@ base-list: make face! [
         ][
             index: face/selected
             unless index == 0 [
+                append/only inco/selected-histories take at inco/histories index
                 append selected-list/data take at face/data index
             ]
         ]
@@ -114,6 +148,23 @@ histories-view: make face! [
     pane: reduce [
         base-list
         selected-list
+        make face! [
+            type: 'button
+            text: "Delete"
+            size: 100x50
+            offset: 700x450
+            actors: object [
+                on-click: function [
+                    face [object!]
+                    event [event!]
+                ] [
+                    ids: collect [foreach blk inco/selected-histories [keep blk/2]]
+                    inco/delete-histories ids
+                    clear inco/selected-histories
+                    clear selected-list/data
+                ]
+            ]
+        ]
     ]
 ]
 

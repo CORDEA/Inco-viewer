@@ -62,25 +62,58 @@ inco: context [
     ]
 ]
 
-histories-view: make face! [
-    type: 'window text: "Inco" size: 800x500
-    pane: reduce [
-        make face! [
-            type: 'text-list size: 800x500
-            data: []
-            actors: object [
-                on-create: function [face [object!]][
-                    histories: inco/get-histories face
-                    foreach history histories [
-                        decrypted: copy ""
-                        result: call/output rejoin ["./decrypt.sh " {"} select history 'url {"}] decrypted
-                        if result == 0 [
-                            append face/data decrypted
-                        ]
-                    ]
+selected-list: make face! [
+    type: 'text-list
+    offset: 400x0
+    size: 400x500
+    data: []
+    actors: object [
+        on-change: function [
+            face [object!]
+            event [event!]
+        ][
+            index: face/selected
+            unless index == 0 [
+                append base-list/data take at face/data index
+            ]
+        ]
+    ]
+]
+
+base-list: make face! [
+    type: 'text-list
+    size: 400x500
+    data: []
+    actors: object [
+        on-create: function [face [object!]][
+            histories: inco/get-histories face
+            foreach history histories [
+                decrypted: copy ""
+                result: call/output rejoin ["./decrypt.sh " {"} select history 'url {"}] decrypted
+                if result == 0 [
+                    append face/data decrypted
                 ]
             ]
         ]
+        on-change: function [
+            face [object!]
+            event [event!]
+        ][
+            index: face/selected
+            unless index == 0 [
+                append selected-list/data take at face/data index
+            ]
+        ]
+    ]
+]
+
+histories-view: make face! [
+    type: 'window
+    text: "Inco"
+    size: 800x500
+    pane: reduce [
+        base-list
+        selected-list
     ]
 ]
 
